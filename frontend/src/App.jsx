@@ -7,24 +7,20 @@ import { useAuthStore } from './store/authStore'
 import { HomePage } from './routes/Home/HomePage'
 import { ChakraProvider } from "@chakra-ui/react";
 import { VerifyEmail } from './routes/Auth/VerifyEmail'
+import { LoadingSpinner } from './components/LoadingSpinner'
 
 
-
+// protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
-	const { isAuthenticated, user,isAdmin } = useAuthStore();
+	const { isAuthenticated, user } = useAuthStore();
 
 	if (!isAuthenticated) {
 		return <Navigate to='/login' replace />;
 	}
 
-	if (!user.isverified) {
+	if (!user.isVerified) {
 		return <Navigate to='/verify-email' replace />;
 	}
-
-		if(user.isAdmin){
-		  return <Navigate to="/admin" replace />
-		}
-	 
 
 	return children;
 };
@@ -33,7 +29,7 @@ const ProtectedRoute = ({ children }) => {
 const RedirectAuthenticatedUser = ({ children }) => {
 	const { isAuthenticated, user } = useAuthStore();
 
-	if (isAuthenticated && user.isverified) {
+	if (isAuthenticated && user.isVerified) {
 		return <Navigate to='/' replace />;
 	}
 
@@ -41,12 +37,15 @@ const RedirectAuthenticatedUser = ({ children }) => {
 };
 
 
-function App() {
-  const { isCheckingAuth, checkAuth,user } = useAuthStore();
 
-  useEffect(() => {
+function App() {
+	const { isCheckingAuth, checkAuth } = useAuthStore();
+
+	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
+
+	if (isCheckingAuth) return <LoadingSpinner />;
   return (
     <>
       <Routes>
@@ -55,6 +54,14 @@ function App() {
 					element={
 						<ProtectedRoute>
                 <HomePage />
+						 </ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/test'
+					element={
+						<ProtectedRoute>
+							<HomePage />
 						 </ProtectedRoute>
 					}
 				/>
